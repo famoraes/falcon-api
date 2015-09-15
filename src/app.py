@@ -2,7 +2,8 @@ import falcon
 import mongoengine as mongo
 
 # Resources
-from resources.things.controller import things
+from resources.post.controller import post
+from resources.author.controller import author
 
 # Middleware
 import middlewares
@@ -16,4 +17,7 @@ app = falcon.API(middleware=[
 mongo.connect('admin')
 
 # Routes
-app.add_route('/things', things)
+app.add_route('/authors', author)
+app.add_route('/authors/{author_id}', author)
+app.add_route('/posts', post)
+app.add_route('/posts/{post_id}', post)
