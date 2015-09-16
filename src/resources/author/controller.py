@@ -2,10 +2,13 @@ import falcon
 import datetime
 
 from .models import Author
-from resources.mixins import BaseController
+from resources import mixins
 
 
-class AuthorController(BaseController):
+class AuthorController(mixins.ListMixin,
+                       mixins.DetailMixin,
+                       mixins.BaseController):
+    model = Author
 
     def _deserialize(self, data):
         if data.get('birthdate'):
@@ -13,20 +16,8 @@ class AuthorController(BaseController):
 
         return data
 
-    def list(self, request, response):
-        response.status = falcon.HTTP_200
-        response.body = Author.objects.all().to_json()
-
-    def retrieve(self, request, response, **kwargs):
-        author_id = kwargs.pop('author_id')
-        author = Author.objects(id=author_id)
-
-        if author:
-            response.status = falcon.HTTP_200
-            response.body = author.to_json()
-        else:
-            response.status = falcon.HTTP_404
-            response.body = self.get_error_message(404)
+    def get_queryset(self):
+        return self.model.objects.all()
 
     def create(self, request, response):
         data = self._deserialize(request.context['data'])

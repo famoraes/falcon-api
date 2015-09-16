@@ -1,13 +1,14 @@
-import falcon
-
 from .models import Post
-from resources.mixins import BaseController
+from resources import mixins
 
 
-class PostController(BaseController):
+class PostController(mixins.ListMixin,
+                     mixins.CreateMixin,
+                     mixins.DetailMixin,
+                     mixins.BaseController):
+    model = Post
 
-    def list(self, request, response):
-        response.status = falcon.HTTP_200
-        response.body = Post.objects.all().to_json()
+    def get_queryset(self):
+        return Post.objects.all()
 
 post = PostController()

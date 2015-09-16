@@ -18,6 +18,6 @@ mongo.connect('admin')
 
 # Routes
 app.add_route('/authors', author)
-app.add_route('/authors/{author_id}', author)
+app.add_route('/authors/{id}', author)
 app.add_route('/posts', post)
-app.add_route('/posts/{post_id}', post)
+app.add_route('/posts/{id}', post)
