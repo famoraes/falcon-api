@@ -1,38 +1,45 @@
 import json
 import falcon
 
-ERRORS_MSG = {
-    404: {
-        'error': 'Not found.'
-    },
-    405: {
-        'error': 'Method not allowed.'
-    }
-}
-
 
 class BaseController:
 
     def get_error_message(self, error_status):
         return json.dumps(ERRORS_MSG[error_status])
 
+    def get_allowed_methods(self, **kwargs):
+        allowed_methods = []
+
+        if hasattr(self, 'list') and not kwargs:
+            allowed_methods.append('GET')
+
+        if hasattr(self, 'retrieve') and kwargs:
+            allowed_methods.append('GET')
+
+        if hasattr(self, 'create') and not kwargs:
+            allowed_methods.append('POST')
+
+        if hasattr(self, 'update') and kwargs:
+            allowed_methods.append('PUT')
+            allowed_methods.append('PATCH')
+
+        return allowed_methods
+
     def on_get(self, request, response, **kwargs):
         if kwargs and  hasattr(self, 'retrieve'):
             return self.retrieve(request, response, **kwargs)
-        elif hasattr(self, 'list'):
+        elif not kwargs and hasattr(self, 'list'):
             return self.list(request, response)
 
-        response.status = falcon.HTTP_405
-        response.body = self.get_error_message(405)
+        raise falcon.HTTPMethodNotAllowed(self.get_allowed_methods(**kwargs))
 
     def on_post(self, request, response, **kwargs):
         if kwargs and hasattr(self, 'update'):
             return self.update(request, response, **kwargs)
-        elif hasattr(self, 'create'):
+        elif not kwargs and hasattr(self, 'create'):
             return self.create(request, response)
 
-        response.status = falcon.HTTP_405
-        response.body = self.get_error_message(405)
+        raise falcon.HTTPMethodNotAllowed(self.get_allowed_methods(**kwargs))
 
 
 class CreateMixin:
@@ -59,6 +66,5 @@ class DetailMixin:
         if obj:
             response.status = falcon.HTTP_200
             response.body = obj.to_json()
-        else:
-            response.status = falcon.HTTP_404
-            response.body = self.get_error_message(404)
+
+        raise falcon.HTTPNotFound()
